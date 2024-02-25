@@ -5,21 +5,17 @@ void dummyThread(Gamepad& gp) {
   int limit = 10;
 
   while (limit--) {
-    gp.onTouchpadEvent();
-    Sleep(3000);
+    printf("state: %d\n", gp.touchpadButtonPressed());
+    Sleep(1000);
   }
 
   printf("The thread has ended");
 }
 
 int main() {
-  printf("Begin.\n\n");
-
-  Gamepad gamepad("054", "09");
+  Gamepad gamepad;
   std::thread t([&gamepad]{dummyThread(gamepad);});
   t.join();
-
-  printf("\nEnd\n");
 
   return 0;
 }

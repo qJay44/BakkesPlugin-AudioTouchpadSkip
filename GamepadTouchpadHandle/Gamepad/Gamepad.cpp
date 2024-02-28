@@ -26,7 +26,6 @@ Gamepad::Gamepad() {
   /*   hidGuid.Data4[4], hidGuid.Data4[5], hidGuid.Data4[6], hidGuid.Data4[7]); */
 
   hDevInfoSet = SetupDiGetClassDevs(&hidGuid, NULL, 0, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
-  /* printf("hDevInfoSet Handle: %p\n", hDevInfoSet); */
 
   devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
 
@@ -40,11 +39,13 @@ Gamepad::Gamepad() {
         constexpr char* vid_sony       = (char*)"VID_054C";
         constexpr char* pid_usb_ds4    = (char*)"PID_05C4";
         constexpr char* pid_usb_ds4_v2 = (char*)"PID_09CC";
+        constexpr char* pid_dualsense  = (char*)"PID_0Df2";
 
         const char* babStr = (char*)byteArrayBuffer;
+        bool isDualsense = strstr(babStr, pid_dualsense);
 
         // If match the substings of the vendor id and the product ids
-        if (strstr(babStr, vid_sony) && (strstr(babStr, pid_usb_ds4) || strstr(babStr, pid_usb_ds4_v2))) {
+        if (strstr(babStr, vid_sony) && (strstr(babStr, pid_usb_ds4) || strstr(babStr, pid_usb_ds4_v2) || isDualsense)) {
           devIfcData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
           SetupDiEnumDeviceInterfaces(hDevInfoSet, NULL, &hidGuid, dwMemberIdx, &devIfcData);
 
@@ -61,20 +62,17 @@ Gamepad::Gamepad() {
           HidD_GetPreparsedData(hHidDeviceObject, &preparsedData);
           HidP_GetCaps(preparsedData, &caps);
 
-          /* printf("Found DS4: %s, inputReportByteLength: %d\n", babStr, caps.InputReportByteLength); */
-
           free(devIfcDetailData);
           free(byteArrayBuffer);
 
           gamepadAllocated = true;
+          touchpadButtonOffset = isDualsense ? 10 : 7;
           break;
         }
       }
       free(byteArrayBuffer);
     }
   }
-  /* else */
-  /*   printf("hDevInfo == INVALID_HANDLE_VALUE\n"); */
 
   SetupDiDestroyDeviceInfoList(hDevInfoSet);
 }
@@ -87,27 +85,33 @@ Gamepad::~Gamepad() {
 }
 
 uint8_t Gamepad::handleTouchpad() {
-  DWORD dwRead;
-  PBYTE inputReport = (PBYTE)malloc(caps.InputReportByteLength);
+  if (gamepadAllocated) {
+    DWORD dwRead;
+    PBYTE inputReport = (PBYTE)malloc(caps.InputReportByteLength);
 
-  ReadFile(hHidDeviceObject, inputReport, caps.InputReportByteLength, &dwRead, 0);
+    ReadFile(hHidDeviceObject, inputReport, caps.InputReportByteLength, &dwRead, 0);
 
-  // If the touchpad button is pressed
-  if (inputReport[7] & 0b0000'0010) {
-    constexpr uint16_t centerX = 1919 / 2;
-    constexpr uint16_t centerY = 942 / 2;
+    // If the touchpad button is pressed
+    if (inputReport[touchpadButtonOffset] & 0b0000'0010) {
+      constexpr uint16_t centerX = 1919 / 2;
 
-    uint16_t touchX = ((uint16_t)inputReport[37] << 8 | (uint16_t)inputReport[36]) & 0b0000'1111'1111'1111;
-    uint16_t touchY = ((uint16_t)inputReport[38] << 4 | (uint16_t)inputReport[37] >> 4) & 0b0000'1111'1111'1111;
+      uint16_t touchX = ((uint16_t)inputReport[37] << 8 | (uint16_t)inputReport[36]) & 0b0000'1111'1111'1111;
 
-    if (touchX > centerX)
-      return TOUCHPAD_RIGHT_SIDE;
-    else
-      return TOUCHPAD_LEFT_SIDE;
+      if (touchX > centerX)
+        return TOUCHPAD_RIGHT_SIDE;
+      else
+        return TOUCHPAD_LEFT_SIDE;
+    }
+
+    free(inputReport);
   }
 
-  free(inputReport);
-
   return TOUCHPAD_NOTHING;
+}
+
+void Gamepad::printInfo(const std::shared_ptr<CVarManagerWrapper>& _globalCvarManager) const {
+  _globalCvarManager->log("inputLenght: " + std::to_string(caps.InputReportByteLength));
+  _globalCvarManager->log("gamepadAllocated: " + std::to_string(gamepadAllocated));
+  _globalCvarManager->log("touchpad offset: " + std::to_string(touchpadButtonOffset));
 }
 

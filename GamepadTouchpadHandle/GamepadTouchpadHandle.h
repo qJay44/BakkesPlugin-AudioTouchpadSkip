@@ -15,11 +15,11 @@ class GamepadTouchpadHandle: public BakkesMod::Plugin::BakkesModPlugin
 	//,public PluginWindowBase // Uncomment if you want to render your own plugin window
 {
 	std::shared_ptr<bool> enabledPtr;
-  Gamepad gamepad;
+  Gamepad* gamepad = nullptr;
 
 	//Boilerplate
 	void onLoad() override;
-	//void onUnload() override; // Uncomment and implement if you need a unload method
+	void onUnload() override; // Uncomment and implement if you need a unload method
 
   void handleInput();
 

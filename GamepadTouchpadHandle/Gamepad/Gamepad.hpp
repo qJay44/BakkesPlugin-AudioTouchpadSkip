@@ -16,9 +16,11 @@ class Gamepad {
     ~Gamepad();
 
     uint8_t handleTouchpad();
+    void printInfo(const std::shared_ptr<CVarManagerWrapper>& _globalCvarManager) const;
 
   private:
     bool gamepadAllocated = false;
+    uint8_t touchpadButtonOffset = 7;
     HANDLE hHidDeviceObject;
     PHIDP_PREPARSED_DATA preparsedData;
     HIDP_CAPS caps;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <windows.h>
 #include <hidsdi.h>
 #include <stdint.h>
@@ -13,9 +15,10 @@ class Gamepad {
     Gamepad();
     ~Gamepad();
 
-    uint8_t touchpadButtonPressed();
+    uint8_t handleTouchpad();
 
   private:
+    bool gamepadAllocated = false;
     HANDLE hHidDeviceObject;
     PHIDP_PREPARSED_DATA preparsedData;
     HIDP_CAPS caps;

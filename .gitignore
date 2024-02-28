@@ -1,3 +1,4 @@
-build/
 .cache/
-log.txt
+.vs/
+build/
+plugins/

@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Gamepad.hpp"
 
 #include <SetupAPI.h>
@@ -19,23 +20,23 @@ Gamepad::Gamepad() {
   PBYTE byteArrayBuffer;
 
   HidD_GetHidGuid(&hidGuid);
-  printf("HID GUID: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n",
-    hidGuid.Data1, hidGuid.Data2, hidGuid.Data3,
-    hidGuid.Data4[0], hidGuid.Data4[1], hidGuid.Data4[2], hidGuid.Data4[3],
-    hidGuid.Data4[4], hidGuid.Data4[5], hidGuid.Data4[6], hidGuid.Data4[7]);
+  /* printf("HID GUID: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n", */
+  /*   hidGuid.Data1, hidGuid.Data2, hidGuid.Data3, */
+  /*   hidGuid.Data4[0], hidGuid.Data4[1], hidGuid.Data4[2], hidGuid.Data4[3], */
+  /*   hidGuid.Data4[4], hidGuid.Data4[5], hidGuid.Data4[6], hidGuid.Data4[7]); */
 
   hDevInfoSet = SetupDiGetClassDevs(&hidGuid, NULL, 0, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
-  printf("hDevInfoSet Handle: %p\n", hDevInfoSet);
+  /* printf("hDevInfoSet Handle: %p\n", hDevInfoSet); */
 
   devInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
 
   if (hDevInfoSet != INVALID_HANDLE_VALUE) {
     while (SetupDiEnumDeviceInfo(hDevInfoSet, ++dwMemberIdx, &devInfoData)) {
-      SetupDiGetDeviceRegistryProperty(hDevInfoSet, &devInfoData, SPDRP_HARDWAREID, &dwType, NULL, 0, &dwSize);
+      SetupDiGetDeviceRegistryPropertyA(hDevInfoSet, &devInfoData, SPDRP_HARDWAREID, &dwType, NULL, 0, &dwSize);
 
       byteArrayBuffer = (PBYTE)malloc(dwSize * sizeof(BYTE));
 
-      if (SetupDiGetDeviceRegistryProperty(hDevInfoSet, &devInfoData, SPDRP_HARDWAREID, &dwType, byteArrayBuffer, dwSize, NULL)) {
+      if (SetupDiGetDeviceRegistryPropertyA(hDevInfoSet, &devInfoData, SPDRP_HARDWAREID, &dwType, byteArrayBuffer, dwSize, NULL)) {
         constexpr char* vid_sony       = (char*)"VID_054C";
         constexpr char* pid_usb_ds4    = (char*)"PID_05C4";
         constexpr char* pid_usb_ds4_v2 = (char*)"PID_09CC";
@@ -60,27 +61,32 @@ Gamepad::Gamepad() {
           HidD_GetPreparsedData(hHidDeviceObject, &preparsedData);
           HidP_GetCaps(preparsedData, &caps);
 
-          printf("Found DS4: %s, inputReportByteLength: %d\n", babStr, caps.InputReportByteLength);
+          /* printf("Found DS4: %s, inputReportByteLength: %d\n", babStr, caps.InputReportByteLength); */
 
           free(devIfcDetailData);
           free(byteArrayBuffer);
+
+          gamepadAllocated = true;
           break;
         }
       }
       free(byteArrayBuffer);
     }
-  } else
-    printf("hDevInfo == INVALID_HANDLE_VALUE\n");
+  }
+  /* else */
+  /*   printf("hDevInfo == INVALID_HANDLE_VALUE\n"); */
 
   SetupDiDestroyDeviceInfoList(hDevInfoSet);
 }
 
 Gamepad::~Gamepad() {
-  HidD_FreePreparsedData(preparsedData);
-  CloseHandle(hHidDeviceObject);
+  if (gamepadAllocated) {
+    HidD_FreePreparsedData(preparsedData);
+    CloseHandle(hHidDeviceObject);
+  }
 }
 
-uint8_t Gamepad::touchpadButtonPressed() {
+uint8_t Gamepad::handleTouchpad() {
   DWORD dwRead;
   PBYTE inputReport = (PBYTE)malloc(caps.InputReportByteLength);
 

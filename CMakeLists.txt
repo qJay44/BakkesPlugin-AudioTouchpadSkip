@@ -3,7 +3,7 @@ message(STATUS "Local .env.cmake: ${LOCAL_ENV}")
 
 cmake_minimum_required(VERSION 3.11.0)
 
-set(NAME GamepadTouchpadHandle)
+set(NAME AudioTouchpadSkip)
 set(CMAKE_CXX_STANDARD 20)
 
 message(STATUS "Using ${CMAKE_GENERATOR}")
@@ -40,7 +40,7 @@ if (USE_MINGW)
   target_link_directories(${PROJECT_NAME} PUBLIC ${MINGW_PATH}/lib)
 endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${BAKKES_INCLUDE_DIRS} ${JOYSHOCK_PATH}/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${BAKKES_INCLUDE_DIRS})
 target_link_directories(${PROJECT_NAME} PUBLIC ${BAKKES_LIBS})
 target_link_libraries(${PROJECT_NAME} pluginsdk)
 

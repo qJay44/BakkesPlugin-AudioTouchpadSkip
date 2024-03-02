@@ -9,7 +9,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{8233086f-ca3e-48af-bcb3-f10f5459eec6}</ProjectGuid>
-    <RootNamespace>GamepadTouchpadHandle</RootNamespace>
+    <RootNamespace>AudioTouchpadSkip</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -111,7 +111,7 @@
     </ClCompile>
     <ClCompile Include="Gamepad\Gamepad.cpp" />
     <ClCompile Include="GuiBase.cpp" />
-    <ClCompile Include="GamepadTouchpadHandle.cpp" />
+    <ClCompile Include="AudioTouchpadSkip.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h" />
@@ -132,11 +132,11 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Gamepad\Gamepad.h" />
     <ClInclude Include="GuiBase.h" />
-    <ClInclude Include="GamepadTouchpadHandle.h" />
+    <ClInclude Include="AudioTouchpadSkip.h" />
     <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GamepadTouchpadHandle.rc" />
+    <ResourceCompile Include="AudioTouchpadSkip.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

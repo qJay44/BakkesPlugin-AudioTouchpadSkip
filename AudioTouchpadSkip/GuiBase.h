@@ -15,7 +15,7 @@ public:
 	virtual ~PluginWindowBase() = default;
 
 	bool isWindowOpen_ = false;
-	std::string menuTitle_ = "GamepadTouchpadHandle";
+	std::string menuTitle_ = "AudioTouchpadSkip";
 
 	std::string GetMenuName() override;
 	std::string GetMenuTitle() override;

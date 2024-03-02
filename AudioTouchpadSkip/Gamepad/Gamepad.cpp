@@ -20,10 +20,6 @@ Gamepad::Gamepad() {
   PBYTE byteArrayBuffer;
 
   HidD_GetHidGuid(&hidGuid);
-  /* printf("HID GUID: {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}\n", */
-  /*   hidGuid.Data1, hidGuid.Data2, hidGuid.Data3, */
-  /*   hidGuid.Data4[0], hidGuid.Data4[1], hidGuid.Data4[2], hidGuid.Data4[3], */
-  /*   hidGuid.Data4[4], hidGuid.Data4[5], hidGuid.Data4[6], hidGuid.Data4[7]); */
 
   hDevInfoSet = SetupDiGetClassDevs(&hidGuid, NULL, 0, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 
@@ -39,7 +35,7 @@ Gamepad::Gamepad() {
         constexpr char* vid_sony       = (char*)"VID_054C";
         constexpr char* pid_usb_ds4    = (char*)"PID_05C4";
         constexpr char* pid_usb_ds4_v2 = (char*)"PID_09CC";
-        constexpr char* pid_dualsense  = (char*)"PID_0Df2";
+        constexpr char* pid_dualsense  = (char*)"PID_0CE6";
 
         const char* babStr = (char*)byteArrayBuffer;
         bool isDualsense = strstr(babStr, pid_dualsense);
@@ -84,10 +80,11 @@ Gamepad::~Gamepad() {
   }
 }
 
-uint8_t Gamepad::handleTouchpad() {
+uint8_t Gamepad::handleTouchpad() const {
   if (gamepadAllocated) {
     DWORD dwRead;
     PBYTE inputReport = (PBYTE)malloc(caps.InputReportByteLength);
+    TouchpadState result = TOUCHPAD_NOTHING;
 
     ReadFile(hHidDeviceObject, inputReport, caps.InputReportByteLength, &dwRead, 0);
 
@@ -95,22 +92,21 @@ uint8_t Gamepad::handleTouchpad() {
     if (inputReport[touchpadButtonOffset] & 0b0000'0010) {
       constexpr uint16_t centerX = 1919 / 2;
 
+      // FIXME: Don't working with DualSense
       uint16_t touchX = ((uint16_t)inputReport[37] << 8 | (uint16_t)inputReport[36]) & 0b0000'1111'1111'1111;
 
-      if (touchX > centerX)
-        return TOUCHPAD_RIGHT_SIDE;
-      else
-        return TOUCHPAD_LEFT_SIDE;
+      result = (TouchpadState)(touchX > centerX);
     }
 
     free(inputReport);
+    return result;
   }
 
   return TOUCHPAD_NOTHING;
 }
 
 void Gamepad::printInfo(const std::shared_ptr<CVarManagerWrapper>& _globalCvarManager) const {
-  _globalCvarManager->log("inputLenght: " + std::to_string(caps.InputReportByteLength));
+  _globalCvarManager->log("inputLength: " + std::to_string(caps.InputReportByteLength));
   _globalCvarManager->log("gamepadAllocated: " + std::to_string(gamepadAllocated));
   _globalCvarManager->log("touchpad offset: " + std::to_string(touchpadButtonOffset));
 }

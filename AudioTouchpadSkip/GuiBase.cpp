@@ -3,7 +3,7 @@
 
 std::string SettingsWindowBase::GetPluginName()
 {
-	return "GamepadTouchpadHandle";
+	return "AudioTouchpadSkip";
 }
 
 void SettingsWindowBase::SetImGuiContext(uintptr_t ctx)
@@ -13,7 +13,7 @@ void SettingsWindowBase::SetImGuiContext(uintptr_t ctx)
 
 std::string PluginWindowBase::GetMenuName()
 {
-	return "GamepadTouchpadHandle";
+	return "AudioTouchpadSkip";
 }
 
 std::string PluginWindowBase::GetMenuTitle()

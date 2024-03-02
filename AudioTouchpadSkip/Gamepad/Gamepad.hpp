@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 enum TouchpadState: uint8_t {
-  TOUCHPAD_RIGHT_SIDE,
   TOUCHPAD_LEFT_SIDE,
+  TOUCHPAD_RIGHT_SIDE,
   TOUCHPAD_NOTHING
 };
 
@@ -15,7 +15,7 @@ class Gamepad {
     Gamepad();
     ~Gamepad();
 
-    uint8_t handleTouchpad();
+    uint8_t handleTouchpad() const;
     void printInfo(const std::shared_ptr<CVarManagerWrapper>& _globalCvarManager) const;
 
   private:

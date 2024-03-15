@@ -38,7 +38,7 @@ Gamepad::Gamepad() {
         constexpr char* pid_dualsense  = (char*)"PID_0CE6";
 
         const char* babStr = (char*)byteArrayBuffer;
-        bool isDualsense = strstr(babStr, pid_dualsense);
+        isDualsense = strstr(babStr, pid_dualsense);
 
         // If match the substings of the vendor id and the product ids
         if (strstr(babStr, vid_sony) && (strstr(babStr, pid_usb_ds4) || strstr(babStr, pid_usb_ds4_v2) || isDualsense)) {
@@ -62,7 +62,6 @@ Gamepad::Gamepad() {
           free(byteArrayBuffer);
 
           gamepadAllocated = true;
-          touchpadButtonOffset = isDualsense ? 10 : 7;
           break;
         }
       }
@@ -80,34 +79,39 @@ Gamepad::~Gamepad() {
   }
 }
 
-uint8_t Gamepad::handleTouchpad() const {
+TouchpadState Gamepad::handleTouchpad() const {
+  TouchpadState result = TOUCHPAD_NOTHING;
+
   if (gamepadAllocated) {
+    constexpr uint16_t centerX = 1919 / 2;
+
     DWORD dwRead;
     PBYTE inputReport = (PBYTE)malloc(caps.InputReportByteLength);
-    TouchpadState result = TOUCHPAD_NOTHING;
 
     ReadFile(hHidDeviceObject, inputReport, caps.InputReportByteLength, &dwRead, 0);
 
-    // If the touchpad button is pressed
-    if (inputReport[touchpadButtonOffset] & 0b0000'0010) {
-      constexpr uint16_t centerX = 1919 / 2;
-
-      // FIXME: Don't working with DualSense
-      uint16_t touchX = ((uint16_t)inputReport[37] << 8 | (uint16_t)inputReport[36]) & 0b0000'1111'1111'1111;
-
-      result = (TouchpadState)(touchX > centerX);
+    if (isDualsense) {
+      if (inputReport[10] & 0b0000'0010) {
+        uint16_t touchX = ((uint16_t)inputReport[35] << 8 | (uint16_t)inputReport[34]) & 0b0000'1111'1111'1111;
+        result = (TouchpadState)(touchX > centerX);
+      }
+    // The same algorithm but different offsets
+    } else {
+      if (inputReport[7] & 0b0000'0010) {
+        uint16_t touchX = ((uint16_t)inputReport[37] << 8 | (uint16_t)inputReport[36]) & 0b0000'1111'1111'1111;
+        result = (TouchpadState)(touchX > centerX);
+      }
     }
 
     free(inputReport);
-    return result;
   }
 
-  return TOUCHPAD_NOTHING;
+  return result;
 }
 
 void Gamepad::printInfo(const std::shared_ptr<CVarManagerWrapper>& _globalCvarManager) const {
   _globalCvarManager->log("inputLength: " + std::to_string(caps.InputReportByteLength));
   _globalCvarManager->log("gamepadAllocated: " + std::to_string(gamepadAllocated));
-  _globalCvarManager->log("touchpad offset: " + std::to_string(touchpadButtonOffset));
+  _globalCvarManager->log("isDualsense: " + std::to_string(isDualsense));
 }
 

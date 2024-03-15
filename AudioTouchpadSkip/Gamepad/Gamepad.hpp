@@ -4,7 +4,7 @@
 #include <hidsdi.h>
 #include <stdint.h>
 
-enum TouchpadState: uint8_t {
+enum TouchpadState : uint8_t {
   TOUCHPAD_LEFT_SIDE,
   TOUCHPAD_RIGHT_SIDE,
   TOUCHPAD_NOTHING
@@ -15,12 +15,13 @@ class Gamepad {
     Gamepad();
     ~Gamepad();
 
-    uint8_t handleTouchpad() const;
+    TouchpadState handleTouchpad() const;
     void printInfo(const std::shared_ptr<CVarManagerWrapper>& _globalCvarManager) const;
 
   private:
     bool gamepadAllocated = false;
-    uint8_t touchpadButtonOffset = 7;
+    bool isDualsense = false;
+
     HANDLE hHidDeviceObject;
     PHIDP_PREPARSED_DATA preparsedData;
     HIDP_CAPS caps;
